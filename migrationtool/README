@@ -1,0 +1,45 @@
+Basically the way the IMAP Migration Tool works is:
+
+1) index.php [HTML FORM] => submits to => archivesetup.php
+2) archivesetup.php => writes to => archive.sh
+3) archive.sh => run on command line by system admin => makes calls to archive.php
+    for you, filling in the correct parameters. This will do the actual
+    archiving or migrating of your messages.
+    
+Messages from IMAP folders will be placed in folders named the same.
+BUT messages from INBOX will be placed in a folder named after the date ran
+(Archived12May2004 for example). 
+    
+There are a couple of settings in archivesetup.conf that you probably want to change.
+Make sure you take a look at that file and make the changes you need.
+
+
+-------------------------------------------------------------------------------
+This is a list of all the files in this project and what they do.  
+-------------------------------------------------------------------------------
+index.php - Supply this form to the end user.  Here they can type in their
+		username and password to the source server and the
+		destination server.
+
+archivesetup.php - This will process the form from the above file and
+		writes to scripts/archive.sh
+
+archivesetup.conf - Configuration file for the above file.  ***You probably want
+    to take a look at this file and make changes to your liking.
+
+scripts/ - This directory must be writable by your webserver.
+		It has the work horse script and the list of folders
+		being archived/migrated.
+
+archive.sh - Made by archivesetup.php.  It contains a list of all the
+		folders being archived/migrated along with login info.
+		It makes calls to archive.php (see below)
+
+archive.php - This is the work horse script.  It moves one folder at a time
+		and takes a lot of parameters.  archive.sh is what you should run
+		and that in turn will call this file with all the parameters.
+
+archive.conf - Configuration file for the above file.
+
+resetscript.sh - This will wipe out archive.sh 
+    
