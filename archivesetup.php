@@ -4,16 +4,9 @@ require("./archivesetup.conf");
 
 
 // Getting Params from Form
-$src_server = $_POST['src_server'];
-$src_username = $_POST['src_username'];
-$src_password = $_POST['src_password'];
-$dest_server = $_POST['dest_server'];
-$dest_username = $_POST['dest_username'];
-$dest_password = $_POST['dest_password'];
-$folder_date = $_POST['folder_date'];
-$inbox_date = $_POST['folder_date'];
-$delete_src_msg = $_POST['folder_date'];
-
+foreach($_POST as $item => $val) {
+    ${$item} = $val;
+}
 
 //if (empty($dest_username) || empty($dest_password) || empty($src_username) || empty($src_password) || empty($inbox_date) || empty($folder_date) || empty($delete_src_msg)) {
   print "src_username = $src_username<BR>\n";
@@ -28,22 +21,8 @@ $delete_src_msg = $_POST['folder_date'];
   exit("<A HREF=\"javascript:history.back()\">Please fill out all information.</A>");
 //}
 
-if ($inbox_date == "true" && empty($inbox_date_weeks)) {
-  print "You must enter a number of weeks for moving messages in INBOX<BR>\n";
-  exit("<A HREF=\"javascript:history.back()\">Please fill out all information.</A>");
-}
-if ($folder_date == "true" && empty($folder_date_weeks)) {
-  print "You must enter a number of weeks for moving messages in IMAP folders<BR>\n";
-  exit("<A HREF=\"javascript:history.back()\">Please fill out all information.</A>");
-}
-
-// Set up some vars
-if (empty($time)) $time = "2am";
 
 $script_header = "#!/bin/sh\n\n";
-
-if ($inbox_date == "false") $inbox_date_weeks = -1;
-if ($folder_date == "false") $folder_date_weeks = -1;
 
 // This sets up the call to the work horse script with all the required parameters
 function getScriptCall($folder_name, $folder_date_weeks, $delete_src_msg) {
@@ -112,6 +91,10 @@ if (!chmod($archivesh, 0755)) {
   print "<A HREF=\"mailto:jsolis@globalworks.com\">Please notify Jason Solis</A><BR><BR>\n\n";
 }
 
+
+// There's no need of shell script
+// "Work Horse" script needs to be transformed in a function to be called upon different inbox folders
+// Inbox folders list might be called upon a 2-step form
 ?>
 <HTML>
 <HEAD>
