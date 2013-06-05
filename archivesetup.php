@@ -8,18 +8,33 @@ foreach($_POST as $item => $val) {
     ${$item} = $val;
 }
 
-//if (empty($dest_username) || empty($dest_password) || empty($src_username) || empty($src_password) || empty($inbox_date) || empty($folder_date) || empty($delete_src_msg)) {
+print_r($_POST);
+
+
+if (empty($dest_username) || empty($dest_password) || empty($src_username) || empty($src_password)) {
   print "src_username = $src_username<BR>\n";
   print "src_password = $src_password<BR>\n";
   print "src_server = $src_server<BR>\n";
   print "dest_username = $dest_username<BR>\n";
   print "dest_password = $dest_password<BR>\n";
   print "dest_server = $dest_server<BR>\n";
-  print "folder_date = $folder_date<BR>\n";
-  print "inbox_date = $inbox_date<BR>\n";
-  print "delete_src_msg = $delete_src_msg<BR>\n";
-  exit("<A HREF=\"javascript:history.back()\">Please fill out all information.</A>");
-//}
+  exit("<A HREF=\"javascript:history.back()\">Please fill out all information.</A>");  
+}
+
+
+// There's no need of shell script
+// "Work Horse" script needs to be transformed in a function to be called upon different inbox folders
+// Inbox folders list might be called upon a 2-step form
+print("The following folders will be imported: <br />");
+foreach($inboxes as $inbox) {
+  print $inbox . "<br />";
+}
+
+require('archive.php');
+migrate_mail($src_server, $src_username, $src_password, $dest_server, $dest_username, $dest_password, $delete_src_msg,$inboxes[0]);
+
+die();
+
 
 
 $script_header = "#!/bin/sh\n\n";
@@ -91,10 +106,6 @@ if (!chmod($archivesh, 0755)) {
   print "<A HREF=\"mailto:jsolis@globalworks.com\">Please notify Jason Solis</A><BR><BR>\n\n";
 }
 
-
-// There's no need of shell script
-// "Work Horse" script needs to be transformed in a function to be called upon different inbox folders
-// Inbox folders list might be called upon a 2-step form
 ?>
 <HTML>
 <HEAD>
