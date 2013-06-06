@@ -24,6 +24,7 @@ Senha: <input type="password" size="20" name="src_password" id="src_password" />
 <p class="select-inbox">
 <select name="inboxes[]" id="inboxes-select" multiple></select>
 </p>
+<p class="inbox-limit"></p>
 <p class="destino">
 Destino:
 <br />
