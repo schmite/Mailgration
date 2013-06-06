@@ -13,6 +13,9 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
   $mailbox = $inboxArray['inboxName'];
   $maxNumMsg = $inboxArray['inboxLimitNum'];
   $direction = $inboxArray['inboxLimitNumDir'];
+  $oldMsgLimit = $inboxArray['inboxLimitDateBegin'];
+  $newMsgLimit = $inboxArray['inboxLimitDateEnd'];
+  
   // Set up the time var
   $now = time();
   /*if ($folder_date_weeks == -1) {
@@ -114,11 +117,9 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
     $obj = imap_header($src_mbox, $i);
     $msg_date = $obj->udate;
     $msg_date = getSentDate($src_mbox, $i);
-    if (false) {
-      print "msg_date = $msg_date\n";
-      $con = date("D, d M Y H:i:s", $msg_date);
-      print "convert date back = $con\n";
-      exit();
+    
+    if($msg_date < $oldMsgLimit || $msg_date > $newMsgLimit) {
+      continue; 
     }
     //if (($archive_date == -1) || ($msg_date < $archive_date)) {
       $header = imap_fetchheader($src_mbox,$i);

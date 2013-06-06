@@ -43,8 +43,12 @@ foreach($inboxes as &$inbox) {
   }
   if(isset(${$_strCheckboxLimitDate. '-check'})) {
     // The user has set a limit to the period of time messages
-    $inbox['inboxLimitDateBegin'] = ${$_strCheckboxLimitDate . '-init'};
-    $inbox['inboxLimitDateEnd'] = ${$_strCheckboxLimitDate . '-end'};
+    $inbox['inboxLimitDateBegin'] = ${$_strCheckboxLimitDate . '-init'} ? strtotime(${$_strCheckboxLimitDate . '-init'}) : 0;
+    $inbox['inboxLimitDateEnd'] = ${$_strCheckboxLimitDate . '-end'} ? strtotime(${$_strCheckboxLimitDate . '-end'}) : time();
+  }
+  else {
+    $inbox['inboxLimitDateBegin'] = 0;
+    $inbox['inboxLimitDateEnd'] = time();
   }
   
 }
