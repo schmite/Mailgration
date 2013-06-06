@@ -6,6 +6,7 @@
 $(document).ready(function(){
   //handle the click of the button
   $('#load-inbox').click(function() {
+    
     if($('#src_server').val().length == 0) {
       alert('Digite o "Endereço do Servidor".');
       return false;
@@ -28,9 +29,32 @@ $(document).ready(function(){
             //clear results in form
             $('#inboxes-select option').remove();
             //add mail folders
-            $('#inboxes-select').append(data);
-            //show next steps
-            $('p.select-inbox').show();
+            $('.inbox-limit').append(data);
+            
+            // Activate triggers
+            $('.checkbox-limit').click(function(){
+              if($(this).is(':checked')) {
+                $(this).parent().find('.limit-box-num-wrapper,.limit-box-date-wrapper').show();
+              }
+              else {
+                $(this).parent().find('.limit-box-num-wrapper input,.limit-box-date-wrapper input').prop('checked',false);
+                $(this).parent().find('.limit-box input').val('');
+                $(this).parent().find('.limit-box').hide();
+              }
+            });
+            
+            $('.checkbox-limit-sub').click(function(){
+              if($(this).is(':checked')) {
+                $(this).parent().find('.limit-box').show();
+              }
+              else {
+                $(this).parent().find('.limit-box input').val('');
+                $(this).parent().find('.limit-box').hide();
+              }
+            });
+            
+            //$('p.select-inbox').show();
+            $('.inbox-limit').show();
           } 
         }        
       }       
