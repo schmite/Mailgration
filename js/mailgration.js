@@ -31,7 +31,7 @@ $(document).ready(function(){
             //add mail folders
             $('.inbox-limit').append(data);
             
-            // Activate triggers
+            // Activate triggers to limit number of messages and period
             $('.checkbox-limit').click(function(){
               if($(this).is(':checked')) {
                 $(this).parent().find('.limit-box-num-wrapper,.limit-box-date-wrapper').show();
@@ -55,6 +55,7 @@ $(document).ready(function(){
             
             //$('p.select-inbox').show();
             $('.inbox-limit').show();
+            $('.destino').show();
           } 
         }        
       }       

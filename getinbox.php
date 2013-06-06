@@ -1,5 +1,6 @@
 <?php
-
+  include('constants.php');
+  
   foreach($_POST as $item => $val) {
       ${$item} = $val;
   }
@@ -19,11 +20,16 @@
           $val = $_exploded[1];
           //$val = "<option value=\"$val\">$val</option>";
           $val = '<div class="limit-wrapper">
-                    <input type="checkbox" class="checkbox-limit" name="'.$val.'" />'.$val.' ('.$_totalMessages.' mensagens nesta caixa)<br />
+                    <input type="hidden" name="'.$val.'-num-msgs" value="'.$_totalMessages.'" />
+                    <input type="checkbox" class="checkbox-limit" name="inboxes[]" value="'.$val.'" />'.$val.' ('.$_totalMessages.' mensagens nesta caixa)<br />
                     <div class="limit-box limit-box-num-wrapper">
                       <input type="checkbox" class="checkbox-limit-sub" name="'.$val.'-limit-num-check" />Limitar o número de mensagens a ser importados<br />
                       <div class="limit-box-num limit-box">
-                        Limite :<input type="text" name="'.$val.'-limit-num" />
+                        Limite :<input type="text" name="'.$val.'-limit-num" /> 
+                        <select name="'.$val.'-limit-num-dir">
+                          <option value='.RECENT.'>Mais Recentes</option>
+                          <option value='.OLD.'>Mais Antigas</option>
+                        </select>
                       </div>
                     </div>
                     <div class="limit-box limit-box-date-wrapper">

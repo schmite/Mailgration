@@ -1,6 +1,6 @@
 <?php
-
-function migrate_mail($src_server, $src_username, $src_password, $dest_server, $dest_username, $dest_password, $delete_src_msg, $folder_name) {
+include('constants.php');
+function migrate_mail($src_server, $src_username, $src_password, $dest_server, $dest_username, $dest_password, $delete_src_msg, $inboxArray) {
   $debug = true;
   
   
@@ -10,8 +10,9 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
   $folder_name = "$folder_name";
   $delete_src_msg = "$delete_src_msg";
   
-  $mailbox = $folder_name;
-  
+  $mailbox = $inboxArray['inboxName'];
+  $maxNumMsg = $inboxArray['inboxLimitNum'];
+  $direction = $inboxArray['inboxLimitNumDir'];
   // Set up the time var
   $now = time();
   /*if ($folder_date_weeks == -1) {
@@ -69,6 +70,7 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
   }*/
   //else {
     $dest_mailbox = $mailbox;
+    echo '<br />'.$mailbox.'<br />';
   //}
   
   // Create $dest_mailbox on $dest_server IF it doesn't exist
@@ -106,7 +108,9 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
   
   //Performance
   imap_headers($src_mbox);
-  for ($i=409; $i<=$da_no_msgs; $i++) {
+  
+  $startPoint = mailgrationStartPoint($da_no_msgs,$direction,$maxNumMsg);
+  for ($i = $startPoint; $i <= $startPoint+$maxNumMsg-1; $i++) {
     $obj = imap_header($src_mbox, $i);
     $msg_date = $obj->udate;
     $msg_date = getSentDate($src_mbox, $i);
@@ -119,10 +123,8 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
     //if (($archive_date == -1) || ($msg_date < $archive_date)) {
       $header = imap_fetchheader($src_mbox,$i);
       $contents = $header . "\r\n" . imap_body($src_mbox, $i, FT_PEEK);
-      if ($debug) print "\nappending msg $i: $dest_server $dest_mbox : $msg_date < $archive_date\n";
-      
-      if (imap_append($dest_mbox, "{"."$dest_server}".$dest_mailbox, $contents)) {
-        setDestFlagsToSrcFlags($dest_mbox, $src_mbox, $i);
+      if ($debug) print "\nappending msg $i: $dest_server $dest_mbox : $msg_date < $archive_date\n";      
+      if (imap_append($dest_mbox, "{"."$dest_server}".$dest_mailbox, $contents,getFlagsFromMsg($src_mbox,$i))) {
         if ($delete_src_msg == "true") {
           if ($debug) print "delete_src_msg = $delete_src_msg - Deleting source message\n";
           if (!deletemsg($src_mbox, $i)) {
@@ -365,46 +367,28 @@ function setFlag($mbox, $msg_no, $flag) {
   }
 }
 
-// $dest_mbox - connection to destination server
-// $src_mbox - connection to source server
-// $msg_no - message number to set Flags for
-function setDestFlagsToSrcFlags($dest_mbox, $src_mbox, $msg_no) {
-  global $debug;
-  if (isFlagSet($src_mbox, $msg_no, "Seen")) {
-    if ($debug) print "Seen was set.  Setting on dest server\n";
-    if (!setFlag($dest_mbox, $msg_no, "\\Seen")) {
-      if ($debug) print "ERROR - Seen Flag not set for message $msg_no on dest server\n";
-    }
+function mailgrationStartPoint($numMsg,$dir,$limit) {  
+  return ($dir == OLD ? 1 : $numMsg - $limit + 1);
+}
+
+function getFlagsFromMsg($mbox,$msg_no) {
+  $toReturn = '';
+  if (isFlagSet($mbox, $msg_no, "Seen")) {
+    $toReturn .= '\\Seen';  
   }
-  else if ($debug) print "Seen was NOT set\n";
   if (isFlagSet($src_mbox, $msg_no, "Answered")) {
-    if ($debug) print "Answered was set.  Setting on dest server\n";
-    if (!setFlag($dest_mbox, $msg_no, "\\Answered")) {
-      if ($debug) print "ERROR - Answered Flag not set for message $msg_no on dest server\n";
-    }
+    $toReturn .= ' \\Answered';
   }
-  else if ($debug) print "Answered was NOT set\n";
   if (isFlagSet($src_mbox, $msg_no, "Flagged")) {
-    if ($debug) print "Flagged was set.  Setting on dest server\n";
-    if (!setFlag($dest_mbox, $msg_no, "\\Flagged")) {
-      if ($debug) print "ERROR - Flagged Flag not set for message $msg_no on dest server\n";
-    }
+    $toReturn .= ' \\Flagged';
   }
-  else if ($debug) print "Flagged was NOT set\n";
   if (isFlagSet($src_mbox, $msg_no, "Deleted")) {
-    if ($debug) print "Deleted was set.  Setting on dest server\n";
-    if (!setFlag($dest_mbox, $msg_no, "\\Deleted")) {
-      if ($debug) print "ERROR - Deleted Flag not set for message $msg_no on dest server\n";
-    }
+    $toReturn .= ' \\Deleted';
   }
-  else if ($debug) print "Deleted was NOT set\n";
   if (isFlagSet($src_mbox, $msg_no, "Draft")) {
-    if ($debug) print "Draft was set.  Setting on dest server\n";
-    if (!setFlag($dest_mbox, $msg_no, "\\Draft")) {
-      if ($debug) print "ERROR - Draft Flag not set for message $msg_no on dest server\n";
-    }
+    $toReturn .= '\\Draft';
   }
-  else if ($debug) print "Draft was NOT set\n";
+  return $toReturn;  
 }
 
 ?>
