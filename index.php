@@ -22,7 +22,7 @@ Senha: <input type="password" size="20" name="src_password" id="src_password" />
 </p>
 <input type="button" id="load-inbox" name="load-inbox" value="Carregar Inboxes" />
 <p class="select-inbox">
-<select name="inboxes" id="inboxes-select" multiple="multiple"></select>
+<select name="inboxes[]" id="inboxes-select" multiple></select>
 </p>
 <p class="destino">
 Destino:
@@ -31,7 +31,10 @@ Endereço do Servidor (sem Portas ou especificações de protocolos):
 <input type="text" size="60" name="dest_server" /><br />
 Usuário de E-mail: <input type="text" size="60" name="dest_username" /><br />
 Senha: <input type="password" size="20" name="dest_password" /><br />
-<br /><input type="submit" value="Migrar" />
+</p> 
+<p>
+<input type="checkbox" name="delete_src_msg" />Apagar as Mensagens do Servidor<br />
+<input type="submit" value="Migrar" />
 </p>
 </form>
 
