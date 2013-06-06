@@ -8,7 +8,7 @@
 	-khtml-border-radius: 5px;
 	border-radius: 5px;
 }
-.select-inbox
+.select-inbox, .destino, .inbox-limit
 {
 	border: 1px solid #000000;
 	padding: 10px;
@@ -19,14 +19,18 @@
 	border-radius: 5px;
 	display: none;
 }
-.destino
+/*.destino
 {
 	border: 1px solid #000000;
 	padding: 10px;
-	/*+border-radius:5px;*/
+	+border-radius:5px;
 	-moz-border-radius: 5px;
 	-webkit-border-radius: 5px;
 	-khtml-border-radius: 5px;
 	border-radius: 5px;
 	display: none;
+}
+*/
+.limit-box {
+  display: none;
 }
