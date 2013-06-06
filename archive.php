@@ -13,16 +13,16 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
   $mailbox = $folder_name;
   
   // Set up the time var
-  //$now = time();
+  $now = time();
   /*if ($folder_date_weeks == -1) {
     $archive_date = -1;
   }
   else {
     $archive_date = $now - (60 * 60 * 24 * 7 * $folder_date_weeks);
-  }
+  }*/
   
   // Used for archive inbox (it gets a special name)
-  $archive_date_string = date("dMY", $now);*/
+  $archive_date_string = date("dMY", $now);
   
   // Make sure we have all the required parameters
   if (empty($dest_username) || empty($dest_password) || empty($src_username) || empty($src_password)) {
@@ -65,11 +65,11 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
     $inbox = true;
     cleanBackupInboxFolder($dest_mbox, $dest_server, $backup_inbox_folder);
     $dest_mailbox = getArchiveDateName($now);
-    if ($debug) print "\n INBOX renamed to $dest_mailbox \n";
-  }
-  else {
-    $dest_mailbox = $mailbox;
+    //if ($debug) print "\n INBOX renamed to $dest_mailbox \n";
   }*/
+  //else {
+    $dest_mailbox = $mailbox;
+  //}
   
   // Create $dest_mailbox on $dest_server IF it doesn't exist
   if (!folderExists($dest_mbox, $dest_server, $dest_mailbox)) {
@@ -103,7 +103,10 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
   //  and append it to {$dest_server}$mailbox IF it's older 
   //  than $archive_date, which is set based on $folder_date_weeks
   // Then mark message deleted on src_server IF $delete_src_msg is true
-  for ($i=1; $i<=$da_no_msgs; $i++) {
+  
+  //Performance
+  imap_headers($src_mbox);
+  for ($i=409; $i<=$da_no_msgs; $i++) {
     $obj = imap_header($src_mbox, $i);
     $msg_date = $obj->udate;
     $msg_date = getSentDate($src_mbox, $i);
@@ -114,8 +117,10 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
       exit();
     }
     //if (($archive_date == -1) || ($msg_date < $archive_date)) {
-      $contents = imap_fetchheader($src_mbox, $i) . "\r\n" . imap_body($src_mbox, $i, FT_PEEK);
+      $header = imap_fetchheader($src_mbox,$i);
+      $contents = $header . "\r\n" . imap_body($src_mbox, $i, FT_PEEK);
       if ($debug) print "\nappending msg $i: $dest_server $dest_mbox : $msg_date < $archive_date\n";
+      
       if (imap_append($dest_mbox, "{"."$dest_server}".$dest_mailbox, $contents)) {
         setDestFlagsToSrcFlags($dest_mbox, $src_mbox, $i);
         if ($delete_src_msg == "true") {
