@@ -1,7 +1,7 @@
 <?php
 include('constants.php');
 function migrate_mail($src_server, $src_username, $src_password, $dest_server, $dest_username, $dest_password, $delete_src_msg, $inboxArray) {
-  $debug = true;
+  $debug = false;
   
   
   // Set up vars from the args for this script
@@ -114,6 +114,7 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
   
   $startPoint = mailgrationStartPoint($da_no_msgs,$direction,$maxNumMsg);
   for ($i = $startPoint; $i <= $startPoint+$maxNumMsg-1; $i++) {
+    print("Mensagem numero: $i<br />");
     $obj = imap_header($src_mbox, $i);
     $msg_date = $obj->udate;
     $msg_date = getSentDate($src_mbox, $i);
@@ -123,9 +124,23 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
     }
     //if (($archive_date == -1) || ($msg_date < $archive_date)) {
       $header = imap_fetchheader($src_mbox,$i);
+      if(!strlen($header)) {
+        print("BUGOU na mensagem: $i!<br />");
+        
+        $i--;
+        print imap_last_error() . "<br />";
+        // Reset connection:
+        @imap_close($src_mbox);
+        sleep(30);
+        $src_mbox = imap_open("{"."$src_server:143/novalidate-cert}" . $mailbox,"$src_username","$src_password") 
+	       or die("can't connect: ".imap_last_error()."\n");
+        
+        continue;
+      }
       $contents = $header . "\r\n" . imap_body($src_mbox, $i, FT_PEEK);
       if ($debug) print "\nappending msg $i: $dest_server $dest_mbox : $msg_date < $archive_date\n";      
       if (imap_append($dest_mbox, "{"."$dest_server}".$dest_mailbox, $contents,getFlagsFromMsg($src_mbox,$i))) {
+        //usleep(500);
         if ($delete_src_msg == "true") {
           if ($debug) print "delete_src_msg = $delete_src_msg - Deleting source message\n";
           if (!deletemsg($src_mbox, $i)) {
