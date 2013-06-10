@@ -34,7 +34,7 @@ $(document).ready(function(){
             // Activate triggers to limit number of messages and period
             $('.checkbox-limit').click(function(){
               if($(this).is(':checked')) {
-                $(this).parent().find('.limit-box-num-wrapper,.limit-box-date-wrapper').show();
+                $(this).parent().find('.limit-box-num-wrapper,.limit-box-date-wrapper,.limit-box-multi-wrapper').show();
               }
               else {
                 $(this).parent().find('.limit-box-num-wrapper input,.limit-box-date-wrapper input').prop('checked',false);

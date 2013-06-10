@@ -39,6 +39,12 @@
                         Até: <input type="text" name="'.$val.'-limit-date-end" /><br />                 
                       </div>
                     </div>
+                    <div class="limit-box limit-box-multi-wrapper">
+                      <input type="checkbox" class="checkbox-limit-sub" name="'.$val.'-limit-multi-check" />Utilizar multiprocessamento<br />
+                      <div class="limit-box limit-box-multi">
+                        A partir de: <input type="text" name="'.$val.'-limit-multi-num" /><br />                 
+                      </div>
+                    </div>
                   </div>
           ';
           $stringona .= $val;

@@ -1,6 +1,7 @@
 <?php
-include('constants.php');
+
 function migrate_mail($src_server, $src_username, $src_password, $dest_server, $dest_username, $dest_password, $delete_src_msg, $inboxArray) {
+  include('constants.php');
   $debug = false;
   
   
@@ -65,7 +66,8 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
   //  instead copy to a folder named after DATE of archiving.
   // TODO - Folders with subfolders should have their mail put in a special subfolder
   //         named after the Top Folder.  Look to imap_getmailboxes() and RFC 2060
-  /*if ($mailbox == "INBOX") {
+  /*if ($mailbox == "INBOX") 
+
     $inbox = true;
     cleanBackupInboxFolder($dest_mbox, $dest_server, $backup_inbox_folder);
     $dest_mailbox = getArchiveDateName($now);
@@ -113,11 +115,16 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
   imap_headers($src_mbox);
   
   $startPoint = mailgrationStartPoint($da_no_msgs,$direction,$maxNumMsg);
-  for ($i = $startPoint; $i <= $startPoint+$maxNumMsg-1; $i++) {
+  $endPoint = $startPoint+$maxNumMsg-1;
+  if(isset($interval)) {
+    $startPoint = $interval['begin'];
+    $endPoint = $interval['end'];
+  }
+  for ($i = $startPoint; $i <= $endPoint; $i++) {
     print("Mensagem numero: $i<br />");
     $obj = imap_header($src_mbox, $i);
     $msg_date = $obj->udate;
-    $msg_date = getSentDate($src_mbox, $i);
+    //$msg_date = getSentDate($src_mbox, $i);
     
     if($msg_date < $oldMsgLimit || $msg_date > $newMsgLimit) {
       continue; 
@@ -139,7 +146,28 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
       }
       $contents = $header . "\r\n" . imap_body($src_mbox, $i, FT_PEEK);
       if ($debug) print "\nappending msg $i: $dest_server $dest_mbox : $msg_date < $archive_date\n";      
-      if (imap_append($dest_mbox, "{"."$dest_server}".$dest_mailbox, $contents,getFlagsFromMsg($src_mbox,$i))) {
+      if(!is_resource($dest_mbox)) {
+        print("BUG na destiny<br />");
+        print imap_last_error . '<br />';
+        @imap_close($dest_mbox);
+        $dest_mbox = imap_open($dest_mbox, "{"."$dest_server:143}" . $dest_mailbox);
+      }
+      // Set up flags array so it doesn't need to pass all of the info in obj
+      /*Recent - R if recent and seen, N if recent and not seen, ' ' if not recent.
+Unseen - U if not seen AND not recent, ' ' if seen OR not seen and recent
+Flagged - F if flagged, ' ' if not flagged
+Answered - A if answered, ' ' if unanswered
+Deleted - D if deleted, ' ' if not deleted
+Draft - X if draft, ' ' if not draft*/      
+      $flagArray = array(
+        'Recent' => $obj->Recent,
+        'Unseen' => $obj->Unseen,
+        'Flagged' => $obj->Flagged,
+        'Answered' => $obj->Answered,
+        'Deleted' => $obj->Deleted,
+        'Draft' => $obj->Draft
+      );
+      if (imap_append($dest_mbox, "{"."$dest_server}".$dest_mailbox, $contents,getFlagsFromMsg($src_mbox,$i,$flagArray))) {
         //usleep(500);
         if ($delete_src_msg == "true") {
           if ($debug) print "delete_src_msg = $delete_src_msg - Deleting source message\n";
@@ -342,23 +370,23 @@ function getArchiveDateName($now) {
 // $mbox - connection to mail server
 // $msg_no - the message no you are reading the flag of
 // $flag - the flag you want to get
-function isFlagSet($mbox, $msg_no, $flag) {
-  $headerinfo = imap_headerinfo($mbox, $msg_no);
+function isFlagSet($mbox, $msg_no, $flag, $headerinfo) {
+  //$headerinfo = imap_headerinfo($mbox, $msg_no);
   switch ($flag) {
     case "Seen":
-      $result = ($headerinfo->Unseen == 'U' || $headerinfo->Recent == 'N') ? false : true;
+      $result = ($headerinfo['Unseen'] == 'U' || $headerinfo['Recent']== 'N') ? false : true;
       break;
     case "Answered":
-      $result = ($headerinfo->Answered == 'A') ? true : false; 
+      $result = ($headerinfo['Answered'] == 'A') ? true : false; 
       break;
     case "Flagged":
-      $result = ($headerinfo->Flagged == 'F') ? true : false;
+      $result = ($headerinfo['Flagged'] == 'F') ? true : false;
       break;
     case "Deleted":
-      $result = ($headerinfo->Deleted == 'D') ? true : false;
+      $result = ($headerinfo['Deleted'] == 'D') ? true : false;
       break;
     case "Draft";
-      $result = ($headerinfo->Draft == 'X') ? true : false;
+      $result = ($headerinfo['Draft'] == 'X') ? true : false;
       break;
     default:
       if ($debug) print "ERROR - Flag specified no defined in isFlagSet() function!";
@@ -387,21 +415,21 @@ function mailgrationStartPoint($numMsg,$dir,$limit) {
   return ($dir == OLD ? 1 : $numMsg - $limit + 1);
 }
 
-function getFlagsFromMsg($mbox,$msg_no) {
+function getFlagsFromMsg($mbox,$msg_no,$obj) {
   $toReturn = '';
-  if (isFlagSet($mbox, $msg_no, "Seen")) {
+  if (isFlagSet($mbox, $msg_no, "Seen",$obj)) {
     $toReturn .= '\\Seen';  
   }
-  if (isFlagSet($src_mbox, $msg_no, "Answered")) {
+  if (isFlagSet($mbox, $msg_no, "Answered",$obj)) {
     $toReturn .= ' \\Answered';
   }
-  if (isFlagSet($src_mbox, $msg_no, "Flagged")) {
+  if (isFlagSet($mbox, $msg_no, "Flagged",$obj)) {
     $toReturn .= ' \\Flagged';
   }
-  if (isFlagSet($src_mbox, $msg_no, "Deleted")) {
+  if (isFlagSet($mbox, $msg_no, "Deleted",$obj)) {
     $toReturn .= ' \\Deleted';
   }
-  if (isFlagSet($src_mbox, $msg_no, "Draft")) {
+  if (isFlagSet($mbox, $msg_no, "Draft",$obj)) {
     $toReturn .= '\\Draft';
   }
   return $toReturn;  

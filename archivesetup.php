@@ -1,5 +1,6 @@
 <?php
 
+include('constants.php');
 require("./archivesetup.conf");
 
 
@@ -30,6 +31,7 @@ foreach($inboxes as &$inbox) {
   $_strInboxFiltered = str_replace(array(' ','.'),'_',$inbox['inboxName']);
   $_strCheckboxLimitNum = $_strInboxFiltered. '-limit-num';
   $_strCheckboxLimitDate = $_strInboxFiltered. '-limit-date';
+  $_strCheckboxLimitMulti = $_strInboxFiltered. '-limit-multi';
   
   
   if(isset(${$_strCheckboxLimitNum . '-check'})) {
@@ -50,24 +52,53 @@ foreach($inboxes as &$inbox) {
     $inbox['inboxLimitDateBegin'] = 0;
     $inbox['inboxLimitDateEnd'] = time();
   }
-  
+  if(isset(${$_strCheckboxLimitMulti. '-check'})) {
+    // The user has chosen multiple processes
+    $inbox['inboxNumProcess'] = isset(${$_strCheckboxLimitMulti . '-num'}) ? ${$_strCheckboxLimitMulti . '-num'} : 1;
+    $inbox['inboxMultiProcessIntervals'] = array();
+    echo ${$_strCheckboxLimitMulti . '-num'}.'<br />';
+    $_delta = ceil($inbox['inboxLimitNum']/$inbox['inboxNumProcess']);
+    echo 'Delta: '.$_delta.'<br />';
+    $_startPoint = $inbox['inboxLimitNumDir'] == OLD ? 0 : ${$_strInboxFiltered . '-num-msgs'} - $inbox['inboxLimitNum'] + 1;
+    
+    for($j = 0; $j < $inbox['inboxNumProcess']; $j++) {
+      $_initPoint = $_startPoint + $j*$_delta + 1;
+      $_endPoint = min($_startPoint + ($j+1)*$_delta,${$_strInboxFiltered . '-num-msgs'}); 
+      array_push($inbox['inboxMultiProcessIntervals'],array('begin' => $_initPoint, 'end' => $_endPoint));
+    }  
+  }  
 }
 
+echo '<pre>';
 foreach($inboxes as $inbox) {
+  
   print_r($inbox);
   echo '<br />';
+  
 }
+echo '</pre>';
 
 // There's no need of shell script
 require('archive.php');
 
-print("The following folders will be imported: <br />");
 foreach($inboxes as $inbox) {
-  print $inbox . "<br />";
-}
-
-foreach($inboxes as $inbox) {
-  migrate_mail($src_server, $src_username, $src_password, $dest_server, $dest_username, $dest_password, $delete_src_msg,$inbox);
+  
+  // Forking part comes here
+  foreach($inbox['inboxMultiProcessIntervals'] as $_interval) {
+    $pid = pcntl_fork();
+     if($pid!=0) {
+      // Parent Process
+      // TODO Wait until every child process have terminated to terminate
+      // TODO Upon receiving a signal, replicate it to every child process
+     }
+     else {
+          echo "Process $i will migrate from Message ".$_interval['begin']." to ".$_interval['end']."<br />\n";
+         //migrate_mail($src_server, $src_username, $src_password, $dest_server, $dest_username, $dest_password, $delete_src_msg,$inbox,$_interval);
+       } 
+     
+  }
+  
+  //migrate_mail($src_server, $src_username, $src_password, $dest_server, $dest_username, $dest_password, $delete_src_msg,$inbox);
 }
 
 
