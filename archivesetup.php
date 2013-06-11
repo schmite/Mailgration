@@ -126,22 +126,8 @@ require('archive.php');
 
 foreach($inboxes as $inbox) {
   
-  /*// Forking part comes here
-  foreach($inbox['inboxMultiProcessIntervals'] as $_interval) {
-    $pid = pcntl_fork();
-     if($pid!=0) {
-      // Parent Process
-      // TODO Wait until every child process have terminated to terminate
-      // TODO Upon receiving a signal, replicate it to every child process
-     }
-     else {
-          echo "Process $i will migrate from Message ".$_interval['begin']." to ".$_interval['end']."<br />\n";
-         //migrate_mail($src_server, $src_username, $src_password, $dest_server, $dest_username, $dest_password, $delete_src_msg,$inbox,$_interval);
-       } 
-     
-  }*/
-  
   migrate_mail($strSrcConnection, $src_server_username, $src_server_password, $strDestConnection, $dest_server_username, $dest_server_password, $delete_src_msg,$inbox);
+
 }
 
 
