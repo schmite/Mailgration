@@ -22,6 +22,49 @@ if (empty($dest_username) || empty($dest_password) || empty($src_username) || em
   //exit("<A HREF=\"javascript:history.back()\">Please fill out all information.</A>");  
 }
 
+// Setting up the server connection strings
+  // Source  
+  if($src_server == 'other') {  
+    $strFlags = '';                                                     
+    foreach($src_server_security_protocol as $flag) {                   
+      $strFlags .= '/'.$flag;                                           
+    }                                                                   
+    $strSrcConnection = '{'.$src_server_name.":$src_server_port$strFlags}";
+  }
+  else {
+    require('./mailref.php');
+    if(!key_exists($src_server,$mailRef)) {
+      die("Unknown server, probably data was inserted in a bad way");
+    }
+    
+    $strFlags = '';                                                     
+    foreach($mailRef[$src_server]['flags'] as $flag) {                   
+      $strFlags .= '/'.$flag;                                           
+    }    
+    $strSrcConnection = '{'.$mailRef[$src_server]['address'].':'.$mailRef[$src_server]['port'].$strFlags.'}';        
+  }
+  // Destiny
+  if($dest_server == 'other') {  
+    $strFlags = '';                                                     
+    foreach($dest_server_security_protocol as $flag) {                   
+      $strFlags .= '/'.$flag;                                           
+    }                                                                   
+    $strDestConnection = '{'.$dest_server_name.":$dest_server_port$strFlags}";
+  }
+  else {
+    require('./mailref.php');
+    if(!key_exists($dest_server,$mailRef)) {
+      die("Unknown server, probably data was inserted in a bad way");
+    }
+    
+    $strFlags = '';                                                     
+    foreach($mailRef[$dest_server]['flags'] as $flag) {                   
+      $strFlags .= '/'.$flag;                                           
+    }    
+    $strDestConnection = '{'.$mailRef[$dest_server]['address'].':'.$mailRef[$dest_server]['port'].$strFlags.'}';        
+  }
+
+
 // Modifies inbox info to include limits set by user
 foreach($inboxes as &$inbox) {
   print $inbox . "<br />";
@@ -83,7 +126,7 @@ require('archive.php');
 
 foreach($inboxes as $inbox) {
   
-  // Forking part comes here
+  /*// Forking part comes here
   foreach($inbox['inboxMultiProcessIntervals'] as $_interval) {
     $pid = pcntl_fork();
      if($pid!=0) {
@@ -96,9 +139,9 @@ foreach($inboxes as $inbox) {
          //migrate_mail($src_server, $src_username, $src_password, $dest_server, $dest_username, $dest_password, $delete_src_msg,$inbox,$_interval);
        } 
      
-  }
+  }*/
   
-  //migrate_mail($src_server, $src_username, $src_password, $dest_server, $dest_username, $dest_password, $delete_src_msg,$inbox);
+  migrate_mail($strSrcConnection, $src_server_username, $src_server_password, $strDestConnection, $dest_server_username, $dest_server_password, $delete_src_msg,$inbox);
 }
 
 

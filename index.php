@@ -13,26 +13,73 @@ if(!function_exists('imap_open')) {
 <h1>Assistente de Migração de E-mail</h1>
 <p>Lorem Ipsum Dolor Sit Amet</p>
 <form action="archivesetup.php" method="POST" id="mailgration-form">
-<p class="origem">Origem:
+<div class="origem">Origem:
 <br />
-Endereço do Servidor (sem Portas ou especificações de protocolos):
-<input type="text" size="60" name="src_server" id="src_server" /><br />
-Usuário de E-mail: <input type="text" size="60" name="src_username" id="src_username" /><br />
-Senha: <input type="password" size="20" name="src_password" id="src_password" /><br />
-</p>
+Servidor de Origem:
+<select id="src_server" name="src_server">
+<option value="0">- Escolher -</option>
+<option value="gmail">Gmail</option>
+<option value="other">Outro</option>
+</select>
+<div id="src_server_info">
+Endereço Imap: <input type="text" size="60" name="src_server_name" id="src_server_name" /><br />
+Porta: <input type="text" size="60" name="src_server_port" id="src_server_port" /><br />
+* Padrão: 143<br />
+Protocolo de Segurança: 
+<select id="src_server_security_protocol" name="src_server_security_protocol[]" multiple="true">
+<option value="norsh">norsh</option>
+<option value="ssl">ssl</option>
+<option value="validate-cert">validate-cert</option>
+<option value="novalidate-cert">novalidate-cert</option>
+<option value="tls">tls</option>
+<option value="notls">notls</option>
+<option value="readonly">readonly</option>
+</select> <br />
+* Caso você não tenha certeza, selecione APENAS a opção 'novalidate-cert'
+</div><br />
+Usuário de E-mail: <input type="text" size="60" name="src_server_username" id="src_username" /><br />
+Senha: <input type="password" size="20" name="src_server_password" id="src_password" /><br />
+</div>
 <input type="button" id="load-inbox" name="load-inbox" value="Carregar Inboxes" />
 <p class="select-inbox">
 <select name="inboxes[]" id="inboxes-select" multiple></select>
 </p>
 <p class="inbox-limit"></p>
-<p class="destino">
+<!--<p class="destino">
 Destino:
 <br />
 Endereço do Servidor (sem Portas ou especificações de protocolos):
 <input type="text" size="60" name="dest_server" /><br />
 Usuário de E-mail: <input type="text" size="60" name="dest_username" /><br />
 Senha: <input type="password" size="20" name="dest_password" /><br />
-</p> 
+</p> -->
+<div class="destino">Destino:
+<br />
+Servidor de Destino:
+<select id="dest_server" name="dest_server">
+<option value="0">- Escolher -</option>
+<option value="gmail">Gmail</option>
+<option value="other">Outro</option>
+</select>
+<div id="dest_server_info">
+Endereço Imap: <input type="text" size="60" name="dest_server_name" id="dest_server_name" /><br />
+Porta: <input type="text" size="60" name="dest_server_port" id="dest_server_port" /><br />
+* Padrão: 143<br />
+Protocolo de Segurança: 
+<select id="dest_server_security_protocol" name="dest_server_security_protocol[]" multiple="true">
+<option value="norsh">norsh</option>
+<option value="ssl">ssl</option>
+<option value="validate-cert">validate-cert</option>
+<option value="novalidate-cert">novalidate-cert</option>
+<option value="tls">tls</option>
+<option value="notls">notls</option>
+<option value="readonly">readonly</option>
+</select> <br />
+* Caso você não tenha certeza, selecione APENAS a opção 'novalidate-cert'
+</div><br />
+Usuário de E-mail: <input type="text" size="60" name="dest_server_username" id="dest_username" /><br />
+Senha: <input type="password" size="20" name="dest_server_password" id="dest_password" /><br />
+</div>
 <p>
 <input type="checkbox" name="delete_src_msg" />Apagar as Mensagens do Servidor<br />
 <input type="submit" value="Migrar" />

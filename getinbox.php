@@ -5,13 +5,34 @@
       ${$item} = $val;
   }
   
-  $stringona = '';
+  $stringona = '';  
   
-  $src_mbox = imap_open("{"."$src_server:143/novalidate-cert}","$src_username","$src_password") 
+  // Checking if personalized connection
+  if($src_server == 'other') {  
+    $strFlags = '';                                                     
+    foreach($src_server_security_protocol as $flag) {                   
+      $strFlags .= '/'.$flag;                                           
+    }                                                                   
+    $strConnection = '{'.$src_server_name.":$src_server_port$strFlags}";
+  }
+  else {
+    require('./mailref.php');
+    if(!key_exists($src_server,$mailRef)) {
+      die("Unknown server, probably data was inserted in a bad way");
+    }
+    
+    $strFlags = '';                                                     
+    foreach($mailRef[$src_server]['flags'] as $flag) {                   
+      $strFlags .= '/'.$flag;                                           
+    }    
+    $strConnection = '{'.$mailRef[$src_server]['address'].':'.$mailRef[$src_server]['port'].$strFlags.'}';        
+  }
+  
+  $src_mbox = imap_open($strConnection,"$src_server_username","$src_server_password") 
 	 or die("can't connect: ".imap_last_error()."\n");
   
   
-  $list = imap_list($src_mbox, "{"."$src_server:143/novalidate-cert}", "*");
+  $list = imap_list($src_mbox, $strConnection, "*");
   if (is_array($list)) {
       foreach ($list as &$val) {
           $_status = imap_status($src_mbox,$val,SA_MESSAGES);

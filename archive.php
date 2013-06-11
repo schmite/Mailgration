@@ -1,21 +1,29 @@
 <?php
 
-function migrate_mail($src_server, $src_username, $src_password, $dest_server, $dest_username, $dest_password, $delete_src_msg, $inboxArray) {
+function migrate_mail($strSrcConnection, $src_username, $src_password, $strDestConnection, $dest_username, $dest_password, $delete_src_msg, $inboxArray) {
   include('constants.php');
-  $debug = false;
+  $debug = true;
   
   
   // Set up vars from the args for this script
   $src_password = "$src_password";
   $dest_password = "$dest_password";
-  $folder_name = "$folder_name";
-  $delete_src_msg = "$delete_src_msg";
+  $delete_src_msg = isset($delete_src_msg) ? "$delete_src_msg" : false;
   
   $mailbox = $inboxArray['inboxName'];
   $maxNumMsg = $inboxArray['inboxLimitNum'];
   $direction = $inboxArray['inboxLimitNumDir'];
   $oldMsgLimit = $inboxArray['inboxLimitDateBegin'];
   $newMsgLimit = $inboxArray['inboxLimitDateEnd'];
+  
+  echo $strDestConnection;
+  $strRawDestIMAP = preg_split('/[{:}]+/',$strDestConnection);
+  echo '<pre>';
+  print_r($strRawDestIMAP);
+  echo '</pre>';
+  
+  $strRawDestIMAP = '{'.$strRawDestIMAP[1].'}'; 
+  
   
   // Set up the time var
   $now = time();
@@ -50,11 +58,11 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
   // Open up the source and destination server
   //  Open up source server TO THE FOLDER we are archiving.  THIS IS VERY IMPORTANT!
   if ($debug) print "Opening src_server: $src_server...\n";
-  $src_mbox = imap_open("{"."$src_server:143/novalidate-cert}" . $mailbox,"$src_username","$src_password") 
+  $src_mbox = imap_open($strSrcConnection . $mailbox,"$src_username","$src_password") 
   	 or die("can't connect: ".imap_last_error()."\n");
   //  Open up dest server to default folder ($dest_mailbox/$mailbox may not exists yet)
   if ($debug) print "Opening dest_server: $dest_server...\n";
-  $dest_mbox = imap_open("{"."$dest_server:143/novalidate-cert}","$dest_username","$dest_password", OP_HALFOPEN)
+  $dest_mbox = imap_open($strDestConnection,"$dest_username","$dest_password", OP_HALFOPEN)
   	 or die("can't connect: ".imap_last_error()."\n");
   
   if ($debug) {
@@ -62,26 +70,16 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
     print "\$dest_mbox = $dest_mbox\n";
   }
   
-  // If INBOX, don't copy to INBOX on dest_server,
-  //  instead copy to a folder named after DATE of archiving.
-  // TODO - Folders with subfolders should have their mail put in a special subfolder
-  //         named after the Top Folder.  Look to imap_getmailboxes() and RFC 2060
-  /*if ($mailbox == "INBOX") 
-
-    $inbox = true;
-    cleanBackupInboxFolder($dest_mbox, $dest_server, $backup_inbox_folder);
-    $dest_mailbox = getArchiveDateName($now);
-    //if ($debug) print "\n INBOX renamed to $dest_mailbox \n";
-  }*/
-  //else {
-    $dest_mailbox = $mailbox;
+  
+  
+  // Adjust name to mailbox
+    $dest_mailbox = preg_match('/^INBOX.$/') ? 'INBOX.'.$mailbox : $mailbox;
     echo '<br />'.$mailbox.'<br />';
-  //}
   
   // Create $dest_mailbox on $dest_server IF it doesn't exist
-  if (!folderExists($dest_mbox, $dest_server, $dest_mailbox)) {
+  if (!folderExists($dest_mbox, $strDestConnection, $dest_mailbox)) {
     if ($debug) print "creating $dest_mailbox on $dest_server $dest_mbox\n";
-    createmailbox($dest_mbox, $dest_server, $dest_mailbox);
+    createmailbox($dest_mbox, $strDestConnection, $dest_mailbox);
   }
   /*
   // Create TEMP folder to back up INBOX messages from src_server not being 'archived'
@@ -93,7 +91,7 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
   // And then reopen dest_server to $dest_mailbox so we can count before and afters
   // NOTE - the use of foo is a cludge to fix the imap_reopen bug!!
   $foo = $dest_mbox;
-  $dest_mbox = imap_reopen($dest_mbox, "{"."$dest_server:143}" . $dest_mailbox);
+  $dest_mbox = imap_reopen($dest_mbox, $strDestConnection . $dest_mailbox);
   $dest_mbox = $foo;
   if ($debug) print "\$dest_mbox = $dest_mbox\n";
   
@@ -112,7 +110,7 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
   // Then mark message deleted on src_server IF $delete_src_msg is true
   
   //Performance
-  imap_headers($src_mbox);
+  //imap_headers($src_mbox);
   
   $startPoint = mailgrationStartPoint($da_no_msgs,$direction,$maxNumMsg);
   $endPoint = $startPoint+$maxNumMsg-1;
@@ -139,19 +137,19 @@ function migrate_mail($src_server, $src_username, $src_password, $dest_server, $
         // Reset connection:
         @imap_close($src_mbox);
         sleep(30);
-        $src_mbox = imap_open("{"."$src_server:143/novalidate-cert}" . $mailbox,"$src_username","$src_password") 
+        $src_mbox = imap_open($strSrcConnection . $mailbox,"$src_username","$src_password") 
 	       or die("can't connect: ".imap_last_error()."\n");
         
         continue;
       }
       $contents = $header . "\r\n" . imap_body($src_mbox, $i, FT_PEEK);
-      if ($debug) print "\nappending msg $i: $dest_server $dest_mbox : $msg_date < $archive_date\n";      
-      if(!is_resource($dest_mbox)) {
+      //if ($debug) print "\nappending msg $i: $dest_server $dest_mbox : $msg_date < $archive_date\n";      
+      /*if(!is_resource($dest_mbox)) {
         print("BUG na destiny<br />");
         print imap_last_error . '<br />';
         @imap_close($dest_mbox);
         $dest_mbox = imap_open($dest_mbox, "{"."$dest_server:143}" . $dest_mailbox);
-      }
+      }*/
       // Set up flags array so it doesn't need to pass all of the info in obj
       /*Recent - R if recent and seen, N if recent and not seen, ' ' if not recent.
 Unseen - U if not seen AND not recent, ' ' if seen OR not seen and recent
@@ -167,7 +165,7 @@ Draft - X if draft, ' ' if not draft*/
         'Deleted' => $obj->Deleted,
         'Draft' => $obj->Draft
       );
-      if (imap_append($dest_mbox, "{"."$dest_server}".$dest_mailbox, $contents,getFlagsFromMsg($src_mbox,$i,$flagArray))) {
+      if (imap_append($dest_mbox, $strRawDestIMAP.$dest_mailbox, $contents,getFlagsFromMsg($src_mbox,$i,$flagArray))) {
         //usleep(500);
         if ($delete_src_msg == "true") {
           if ($debug) print "delete_src_msg = $delete_src_msg - Deleting source message\n";
@@ -220,8 +218,11 @@ Draft - X if draft, ' ' if not draft*/
 // $mailbox - the name of the mailbox you want to create
 function createmailbox($mbox, $server, $mailbox) {
   global $src_username;
-  if (@imap_createmailbox($mbox,imap_utf7_encode("{" . $server . "}$mailbox"))) {
-    $status = @imap_status($mbox,"{" . $server . "}" . $mailbox,SA_ALL);
+  echo $server.'<br />';
+  echo $mailbox.'<br />';
+  
+  if (@imap_createmailbox($mbox,imap_utf7_encode($server.$mailbox))) {
+    $status = @imap_status($mbox,$server.$mailbox,SA_ALL);
     if($status) {
       print("$src_username - $mailbox:\n");
       print("UIDvalidity:". $status->uidvalidity)."\n\n";
@@ -236,7 +237,7 @@ function createmailbox($mbox, $server, $mailbox) {
 // $mbox - connection to the mail server
 // $mailbox - the name of the folder you are checking if exists
 function folderExists($mbox, $server, $mailbox) {
-  $folders = imap_listmailbox($mbox, "{" . $server . "}", $mailbox);
+  $folders = imap_listmailbox($mbox,$server,$mailbox);
   if (empty($folders))
     return false;
   else 

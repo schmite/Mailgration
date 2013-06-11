@@ -34,3 +34,11 @@
 .limit-box {
   display: none;
 }
+
+#src_server_info {
+  display: none;
+}
+
+#dest_server_info {
+  display: none;
+}

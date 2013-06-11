@@ -7,7 +7,7 @@ $(document).ready(function(){
   //handle the click of the button
   $('#load-inbox').click(function() {
     
-    if($('#src_server').val().length == 0) {
+    if($('select#src_server').val=="other" && $('#src_server_name').val().length == 0) {
       alert('Digite o "Endereço do Servidor".');
       return false;
     }
@@ -29,6 +29,7 @@ $(document).ready(function(){
             //clear results in form
             $('#inboxes-select option').remove();
             //add mail folders
+            $('.inbox-limit').empty();
             $('.inbox-limit').append(data);
             
             // Activate triggers to limit number of messages and period
@@ -60,5 +61,23 @@ $(document).ready(function(){
         }        
       }       
     );
+  });
+  $('select#src_server').change(function() {
+    if($(this).val() != 'other') {
+      $('#src_server_info').hide();
+      $('#src_server_info input').val('');
+    }
+    else {
+      $('#src_server_info').show();
+    }
+  });
+  $('select#dest_server').change(function() {
+    if($(this).val() != 'other') {
+      $('#dest_server_info').hide();
+      $('#dest_server_info input').val('');
+    }
+    else {
+      $('#dest_server_info').show();
+    }
   });
 });
