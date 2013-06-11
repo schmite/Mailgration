@@ -84,7 +84,7 @@ require('archive.php');
 foreach($inboxes as $inbox) {
   
   // Forking part comes here
-  foreach($inbox['inboxMultiProcessIntervals'] as $_interval) {
+  /*foreach($inbox['inboxMultiProcessIntervals'] as $_interval) {
     $pid = pcntl_fork();
      if($pid!=0) {
       // Parent Process
@@ -96,9 +96,9 @@ foreach($inboxes as $inbox) {
          //migrate_mail($src_server, $src_username, $src_password, $dest_server, $dest_username, $dest_password, $delete_src_msg,$inbox,$_interval);
        } 
      
-  }
+  }*/
   
-  //migrate_mail($src_server, $src_username, $src_password, $dest_server, $dest_username, $dest_password, $delete_src_msg,$inbox);
+  migrate_mail($src_server, $src_username, $src_password, $dest_server, $dest_username, $dest_password, $delete_src_msg,$inbox);
 }
 
 
