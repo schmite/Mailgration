@@ -18,7 +18,13 @@ if(!function_exists('imap_open')) {
 Servidor de Origem:
 <select id="src_server" name="src_server">
 <option value="0">- Escolher -</option>
-<option value="gmail">Gmail</option>
+<?php
+  include('mailref.php');
+  foreach($mailRef as $key => $val) { ?>
+    <option value="<?php echo $key; ?>"><?php echo $val['display_name']; ?></option>
+    <?php
+  }
+?>
 <option value="other">Outro</option>
 </select>
 <div id="src_server_info">
@@ -45,20 +51,18 @@ Senha: <input type="password" size="20" name="src_server_password" id="src_passw
 <select name="inboxes[]" id="inboxes-select" multiple></select>
 </p>
 <p class="inbox-limit"></p>
-<!--<p class="destino">
-Destino:
-<br />
-Endereço do Servidor (sem Portas ou especificações de protocolos):
-<input type="text" size="60" name="dest_server" /><br />
-Usuário de E-mail: <input type="text" size="60" name="dest_username" /><br />
-Senha: <input type="password" size="20" name="dest_password" /><br />
-</p> -->
 <div class="destino">Destino:
 <br />
 Servidor de Destino:
 <select id="dest_server" name="dest_server">
 <option value="0">- Escolher -</option>
-<option value="gmail">Gmail</option>
+<?php
+  include('mailref.php');
+  foreach($mailRef as $key => $val) { ?>
+    <option value="<?php echo $key; ?>"><?php echo $val['display_name']; ?></option>
+    <?php
+  }
+?>
 <option value="other">Outro</option>
 </select>
 <div id="dest_server_info">

@@ -12,6 +12,16 @@ echo '<pre>';
 print_r($_POST);
 echo '</pre>';
 
+/* Required data:
+   $src_server
+   $src_username
+   $src_password
+   $src_server_security_protocol
+   
+   $dest_server
+   
+*/ 
+
 if (empty($dest_username) || empty($dest_password) || empty($src_username) || empty($src_password)) {
   print "src_username = $src_username<BR>\n";
   print "src_password = $src_password<BR>\n";
@@ -21,6 +31,8 @@ if (empty($dest_username) || empty($dest_password) || empty($src_username) || em
   print "dest_server = $dest_server<BR>\n";
   //exit("<A HREF=\"javascript:history.back()\">Please fill out all information.</A>");  
 }
+
+//die();
 
 // Setting up the server connection strings
   // Source  
