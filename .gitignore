@@ -1,3 +1,7 @@
 zubatdata.php
 migrationtool/.
 script.php
+sandbox.py
+*.pyc
+data.py
+debug
